@@ -41,7 +41,7 @@ def parse_args():
     parser.add_argument("-s", "--style", choices=["weibo", "maven"], default="weibo",
                         help="设置界面风格 (weibo/maven)")
     parser.add_argument("-y", "--style-passthrough", dest="style", 
-                        help=argparse.SUPPRESS)  # 用于从mvn脚本传递风格参数
+                        help=argparse.SUPPRESS)  # 用于从weibo脚本传递风格参数
     
     # 添加其他参数
     parser.add_argument("-b", "--browser", default="chrome", choices=["chrome", "firefox", "edge", "safari"],

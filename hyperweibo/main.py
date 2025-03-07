@@ -329,12 +329,12 @@ def show_license_agreement():
     console.print()
     
     console.print("[bold red]您必须同意许可协议才能使用本软件。[/bold red]")
-    console.print("[bold]请运行 './mvn agree' 命令查看并同意许可协议。[/bold]")
+    console.print("[bold]请运行 './weibo agree' 命令查看并同意许可协议。[/bold]")
     sys.exit(1)
 
 def main():
     """主函数"""
-    # 许可协议检查已经在mvn脚本中完成，此处不再需要
+    # 许可协议检查已经在weibo脚本中完成，此处不再需要
     # show_license_agreement()
     
     args = parse_args()

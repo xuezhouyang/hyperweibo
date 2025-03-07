@@ -56,7 +56,7 @@
 pip install -r hyperweibo/requirements.txt
 
 # 或使用简化命令
-./mvn install
+./weibo install
 ```
 
 ## 使用方法
@@ -72,15 +72,15 @@ pip install -r hyperweibo/requirements.txt
 
 | 命令 | 说明 |
 |------|------|
-| `./mvn test` | 查看关注的微博内容 |
-| `./mvn test:special` | 查看特别关注的微博内容 |
-| `./mvn test:mock` | 使用模拟数据（无需登录） |
-| `./mvn test:group <组ID>` | 查看指定分组的微博内容 |
-| `./mvn clean` | 清理缓存数据 |
-| `./mvn install` | 安装依赖 |
-| `./mvn help` | 显示帮助信息 |
-| `./mvn license` | 显示许可协议 |
-| `./mvn agree` | 查看并同意许可协议 |
+| `./weibo home` | 查看关注的微博内容 |
+| `./weibo special` | 查看特别关注的微博内容 |
+| `./weibo mock` | 使用模拟数据（无需登录） |
+| `./weibo group <组ID>` | 查看指定分组的微博内容 |
+| `./weibo clean` | 清理缓存数据 |
+| `./weibo install` | 安装依赖 |
+| `./weibo help` | 显示帮助信息 |
+| `./weibo license` | 显示许可协议 |
+| `./weibo agree` | 查看并同意许可协议 |
 
 ### 命令行选项
 
@@ -88,16 +88,16 @@ pip install -r hyperweibo/requirements.txt
 
 ```bash
 # 指定浏览器获取登录信息
-./mvn test -b firefox
+./weibo home -b firefox
 
 # 设置自动刷新间隔（秒）
-./mvn test -r 30
+./weibo home -r 30
 
 # 从指定页码开始查看
-./mvn test -p 2
+./weibo home -p 2
 
 # 组合使用选项
-./mvn test:special -b chrome -r 60 -p 1
+./weibo special -b chrome -r 60 -p 1
 ```
 
 ### 直接使用Python命令
@@ -200,10 +200,10 @@ q. 退出
 
 | 命令中的术语 | 实际功能 |
 |------------|---------|
-| test | 查看关注的微博 |
-| test:special | 查看特别关注的微博 |
-| test:group | 查看指定分组的微博 |
-| test:mock | 使用模拟数据 |
+| home | 查看关注的微博 |
+| special | 查看特别关注的微博 |
+| group | 查看指定分组的微博 |
+| mock | 使用模拟数据 |
 | clean | 清理缓存数据 |
 | install | 安装依赖 |
 | help | 显示帮助信息 |
@@ -254,7 +254,7 @@ pip install pycookiecheat
 ⚠️ 本工具仅用于个人学习和研究  
 ⚠️ 请勿频繁刷新，以免影响服务器性能  
 ⚠️ 如遇到问题，请确保您的浏览器已正确登录微博  
-⚠️ 在公共场合使用时，建议使用模拟数据模式（`./mvn test:mock`）  
+⚠️ 在公共场合使用时，建议使用模拟数据模式（`./weibo mock`）  
 
 ## 许可证
 
@@ -269,7 +269,7 @@ Copyright (c) 2025 Xue Zhouyang <xuezhouyang@gmail.com>
 1. 首次运行任何命令（除了`help`、`license`和`agree`）时，系统会自动显示许可协议并要求用户同意
 2. 用户必须滚动查看完整的中文版协议才能进行同意操作
 3. 用户同意后，系统会记录同意状态，后续使用不再需要重复同意
-4. 用户可以随时通过`./mvn agree -f`命令重新查看并确认协议
-5. 用户可以通过`./mvn license`命令查看完整的许可协议文本
+4. 用户可以随时通过`./weibo agree -f`命令重新查看并确认协议
+5. 用户可以通过`./weibo license`命令查看完整的许可协议文本
 
 > **注意：** 未同意许可协议的用户将无法使用本软件的核心功能。 
