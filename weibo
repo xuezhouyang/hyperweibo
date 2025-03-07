@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# 微博命令行工具快捷方式
+# 作者: Xue Zhouyang <xuezhouyang@gmail.com>
+
+# 默认命令
+COMMAND="test"
+
+# 解析命令
+if [ $# -gt 0 ]; then
+    case "$1" in
+        "special")
+            COMMAND="test:special"
+            shift
+            ;;
+        "mock")
+            COMMAND="test:mock"
+            shift
+            ;;
+        "group")
+            COMMAND="test:group"
+            if [ $# -gt 1 ]; then
+                GROUP_ID="$2"
+                shift 2
+                ./mvn "$COMMAND" "$GROUP_ID" "$@"
+                exit $?
+            else
+                echo "错误: 缺少组ID参数"
+                echo "用法: ./weibo group <组ID> [选项]"
+                exit 1
+            fi
+            ;;
+        "help")
+            echo "微博命令行工具"
+            echo ""
+            echo "用法: ./weibo [命令] [选项]"
+            echo ""
+            echo "可用命令:"
+            echo "  (无命令)          查看关注的微博"
+            echo "  special           查看特别关注的微博"
+            echo "  mock              使用模拟数据查看微博"
+            echo "  group <组ID>      查看指定分组的微博"
+            echo "  help              显示帮助信息"
+            echo ""
+            echo "常用选项:"
+            echo "  -b, --browser <浏览器>  指定浏览器 (chrome/firefox/edge/safari)"
+            echo "  -r, --refresh <秒数>    设置自动刷新间隔"
+            echo "  -p, --page <页码>       指定起始页码"
+            echo ""
+            echo "示例:"
+            echo "  ./weibo                 查看关注的微博"
+            echo "  ./weibo special         查看特别关注的微博"
+            echo "  ./weibo -b firefox      使用Firefox浏览器查看微博"
+            echo "  ./weibo group G123456   查看指定分组的微博"
+            echo ""
+            exit 0
+            ;;
+        *)
+            # 如果第一个参数不是已知命令，则视为选项
+            ;;
+    esac
+fi
+
+# 执行mvn命令
+./mvn "$COMMAND" "$@" 

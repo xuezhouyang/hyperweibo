@@ -1,0 +1,179 @@
+#!/bin/bash
+
+# Maven风格的启动脚本
+# 用法: ./mvn [命令] [选项]
+# 
+# 作者: Xue Zhouyang <xuezhouyang@gmail.com>
+# 许可证: MIT License (Modified with Extended Disclaimers)
+# 
+# 法律免责声明与使用限制: 
+#     1. 本软件仅供作者个人本地测试使用，不得用于任何商业目的或获利行为。
+#     
+#     2. 任何个人或实体使用本软件应自行承担全部风险。作者明确声明不对使用本软件可能导致的
+#        任何直接、间接、偶然、特殊、惩罚性或后果性损害承担任何责任，无论此类损害是否可预见，
+#        也无论责任理论如何。
+#     
+#     3. 使用者必须遵守所有适用的国家、地区和国际法律法规，包括但不限于计算机安全法、
+#        网络安全法、数据保护法和隐私法。作者不对任何违反法律法规的使用行为承担责任。
+#     
+#     4. 地域限制: 严禁在中华人民共和国和美利坚合众国境内使用本软件，或通过本软件请求、
+#        访问、处理或存储与这两国有利益关联或受其管辖的任何数据、信息或资产。
+#     
+#     5. 任何基于本项目的二次开发、修改、分发或使用导致的任何直接或间接后果，包括但不限于
+#        法律责任、数据泄露、系统损害或任何其他形式的损失，均与原作者无关，原作者不承担
+#        任何法律或道德责任。
+
+# 默认命令
+COMMAND="test"
+
+# 解析命令
+if [ $# -gt 0 ]; then
+    COMMAND="$1"
+    shift
+fi
+
+# 检查用户是否已经同意许可协议
+check_agreement() {
+    # 如果命令是agree、license或help，则不需要检查
+    if [ "$1" = "agree" ] || [ "$1" = "license" ] || [ "$1" = "help" ]; then
+        return 0
+    fi
+    
+    # 检查.agreement文件是否存在
+    if [ -f ".agreement" ]; then
+        # 简单检查文件是否存在且非空
+        if [ -s ".agreement" ]; then
+            echo "已检测到您之前同意的许可协议，继续执行命令..."
+            return 0
+        else
+            echo "协议同意状态文件存在但为空，将重新显示许可协议..."
+            # 删除空文件
+            rm -f ".agreement"
+        fi
+    fi
+    
+    # 如果没有同意协议，直接运行agree.py
+    echo "您尚未同意许可协议，将显示许可协议..."
+    if [ -f "agree.py" ]; then
+        python agree.py
+        
+        # 检查agree.py的返回值
+        AGREE_RESULT=$?
+        if [ $AGREE_RESULT -ne 0 ]; then
+            echo "您必须同意许可协议才能使用本软件。"
+            exit 1
+        fi
+        
+        # 再次检查是否已同意（只检查文件是否存在且非空）
+        if [ -f ".agreement" ] && [ -s ".agreement" ]; then
+            echo "感谢您同意许可协议，继续执行命令..."
+            return 0
+        else
+            echo "协议同意状态文件未正确创建，请联系软件作者。"
+            exit 1
+        fi
+    else
+        echo "错误: 找不到agree.py文件"
+        echo "请运行 './mvn license' 命令查看许可协议，或联系软件作者。"
+        exit 1
+    fi
+}
+
+# 检查用户是否已经同意许可协议
+check_agreement "$COMMAND"
+
+# 根据命令执行不同的操作
+case "$COMMAND" in
+    "test")
+        # 运行测试
+        python hyperweibo.py "$@"
+        ;;
+    "test:special")
+        # 运行特殊测试
+        python hyperweibo.py -s "$@"
+        ;;
+    "test:mock")
+        # 使用模拟数据运行测试
+        python hyperweibo.py -m "$@"
+        ;;
+    "test:group")
+        # 运行指定组的测试
+        if [ $# -gt 0 ]; then
+            python hyperweibo.py -g "$1" "${@:2}"
+        else
+            echo "错误: 缺少组ID参数"
+            echo "用法: ./mvn test:group <组ID> [选项]"
+            exit 1
+        fi
+        ;;
+    "clean")
+        # 清理项目
+        echo "正在清理项目..."
+        find . -name "__pycache__" -type d -exec rm -rf {} +
+        find . -name "*.pyc" -delete
+        echo "清理完成"
+        ;;
+    "install")
+        # 安装依赖
+        echo "正在安装依赖..."
+        pip install -r hyperweibo/requirements.txt
+        echo "安装完成"
+        ;;
+    "license")
+        # 显示许可协议
+        echo "显示许可协议..."
+        if [ -f "LICENSE" ]; then
+            cat LICENSE
+        else
+            echo "错误: 找不到LICENSE文件"
+            exit 1
+        fi
+        ;;
+    "agree")
+        # 显示许可协议并要求用户同意
+        echo "显示许可协议并要求用户同意..."
+        if [ -f "agree.py" ]; then
+            python agree.py "$@"
+        else
+            echo "错误: 找不到agree.py文件"
+            exit 1
+        fi
+        ;;
+    "help")
+        # 显示帮助信息
+        echo "Java项目构建工具"
+        echo ""
+        echo "用法: ./mvn [命令] [选项]"
+        echo ""
+        echo "可用命令:"
+        echo "  test              运行标准测试套件"
+        echo "  test:special      运行特殊测试套件"
+        echo "  test:mock         使用模拟数据运行测试"
+        echo "  test:group <组ID> 运行指定组的测试"
+        echo "  clean             清理项目"
+        echo "  install           安装依赖"
+        echo "  license           显示许可协议"
+        echo "  agree             显示许可协议并要求用户同意"
+        echo "  help              显示帮助信息"
+        echo ""
+        echo "常用选项:"
+        echo "  -b, --browser <浏览器>  指定浏览器进行集成测试 (chrome/firefox/edge/safari)"
+        echo "  -r, --refresh <秒数>    设置自动刷新间隔"
+        echo "  -p, --page <页码>       指定起始页码"
+        echo ""
+        echo "示例:"
+        echo "  ./mvn test                     运行标准测试套件"
+        echo "  ./mvn test:special             运行特殊测试套件"
+        echo "  ./mvn test -b firefox          使用Firefox运行测试"
+        echo "  ./mvn test:group G123456 -p 2  运行指定组的测试，从第2页开始"
+        echo "  ./mvn agree -f                 强制显示许可协议并要求用户同意"
+        echo ""
+        echo "注意: 首次使用本软件前，必须同意许可协议。系统将自动显示许可协议并要求您同意。"
+        ;;
+    *)
+        # 未知命令
+        echo "错误: 未知命令 '$COMMAND'"
+        echo "运行 './mvn help' 获取帮助"
+        exit 1
+        ;;
+esac 
