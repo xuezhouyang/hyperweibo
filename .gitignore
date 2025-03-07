@@ -1,0 +1,81 @@
+# Python 相关
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+venv/
+env/
+ENV/
+.venv/
+.pyenv/
+
+# IDE 和编辑器相关
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 日志和数据库
+*.log
+*.sqlite3
+*.db
+*.sqlite
+
+# Python 包管理
+pip-log.txt
+pip-delete-this-directory.txt
+
+# 配置文件
+*.cfg
+*.ini
+*.toml
+*.json
+
+# 单元测试缓存
+.coverage
+.tox/
+.nox/
+nosetests.xml
+coverage.xml
+*.cover
+*.pycoverage
+*.hypothesis/
+pytest_cache/
+
+# 依赖管理
+Pipfile
+Pipfile.lock
+poetry.lock
+
+# Jupyter Notebook 相关
+.ipynb_checkpoints/
+
+# Django 相关
+*.pot
+*.pyc
+db.sqlite3
+instance/
+local_settings.py
+media/
+staticfiles/
+.env
+*.env
+
+# Flask 相关
+instance/
+.webassets-cache
+
+# MacOS 和 Linux 相关
+.DS_Store
+*.swp
+*.swo
+*.swn
+*~
+
+# Windows 相关
+Thumbs.db
+desktop.ini
+
+# 项目
+.agreement
