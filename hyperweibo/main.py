@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Java项目构建工具 - 主程序
+微博命令行工具 - 主程序
 
 作者: Xue Zhouyang <xuezhouyang@gmail.com>
 许可证: MIT License (Modified with Extended Disclaimers)
@@ -36,6 +36,7 @@ from rich import print
 from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
+import datetime
 
 # 尝试使用相对导入
 try:
@@ -54,25 +55,214 @@ except ImportError:
 
 console = Console()
 
+# 获取语言和风格设置
+LANGUAGE = os.environ.get("HYPERWEIBO_LANGUAGE", "zh")
+STYLE = os.environ.get("HYPERWEIBO_STYLE", "weibo")
+
+# 文案定义
+TEXT = {
+    "en": {
+        "weibo": {
+            "title": "Weibo Command Line Tool",
+            "initializing": "Initializing...",
+            "browser_auth": "If unable to automatically get session info, a browser will open for authentication",
+            "group_not_found": "Group ID not found: {}",
+            "timeline": "Timeline (Page {})",
+            "special_timeline": "Special Focus Timeline (Page {})",
+            "group_timeline": "{} Timeline (Page {})",
+            "total_records": "Total {} records",
+            "no_records": "No records found",
+            "operation_menu": "Operation Menu",
+            "refresh": "Refresh current page",
+            "switch_special": "Switch to special focus",
+            "switch_normal": "Switch to normal timeline",
+            "select_group": "Select group",
+            "next_page": "Next page",
+            "prev_page": "Previous page",
+            "goto_page": "Go to specific page",
+            "exit": "Exit",
+            "select_prompt": "Please select [1/2/3/n/p/g/q] (1): ",
+            "group_list": "Group List",
+            "group_number": "No.",
+            "group_id": "Group ID",
+            "group_name": "Group Name",
+            "select_group_prompt": "Please select group number (0 to return): ",
+            "page_prompt": "Enter page number: ",
+            "invalid_input": "Invalid input, please try again",
+            "loading": "Loading data...",
+            "quotes": "Reposts",
+            "comments": "Comments",
+            "likes": "Likes",
+            "attachments": "Attachments",
+            "media": "Media",
+            "stats_error": "Error processing statistics",
+            "attachment_error": "Error processing attachments",
+            "quote_error": "Error processing quoted content",
+            "quote_prefix": "Quote from @{}:",
+            "retweet_prefix": "Retweet from @{}:",
+            "item_count": "{} items"
+        },
+        "maven": {
+            "title": "Java Project Build Tool",
+            "initializing": "Initializing build environment...",
+            "browser_auth": "If unable to automatically get session info, a browser will open for authentication",
+            "group_not_found": "Test group ID not found: {}",
+            "timeline": "Standard Test Suite Data (Page {})",
+            "special_timeline": "Special Test Suite Data (Page {})",
+            "group_timeline": "{} Test Data (Page {})",
+            "total_records": "Total {} records",
+            "no_records": "No records found",
+            "operation_menu": "Operation Menu",
+            "refresh": "Refresh current page",
+            "switch_special": "Switch to special test suite",
+            "switch_normal": "Switch to standard test suite",
+            "select_group": "Select test group",
+            "next_page": "Next page",
+            "prev_page": "Previous page",
+            "goto_page": "Go to specific page",
+            "exit": "Exit",
+            "select_prompt": "Please select [1/2/3/n/p/g/q] (1): ",
+            "group_list": "Test Group List",
+            "group_number": "No.",
+            "group_id": "Group ID",
+            "group_name": "Group Name",
+            "select_group_prompt": "Please select test group number (0 to return): ",
+            "page_prompt": "Enter page number: ",
+            "invalid_input": "Invalid input, please try again",
+            "loading": "Loading data...",
+            "quotes": "References",
+            "comments": "Comments",
+            "likes": "Approvals",
+            "attachments": "Attachments",
+            "media": "Multimedia",
+            "stats_error": "Error processing statistics",
+            "attachment_error": "Error processing attachments",
+            "quote_error": "Error processing referenced content",
+            "quote_prefix": "Reference from @{}:",
+            "retweet_prefix": "Reference from @{}:",
+            "item_count": "{} items"
+        }
+    },
+    "zh": {
+        "weibo": {
+            "title": "微博命令行工具",
+            "initializing": "正在初始化...",
+            "browser_auth": "如果无法自动获取会话信息，将会打开浏览器进行认证",
+            "group_not_found": "未找到指定的分组ID: {}",
+            "timeline": "微博关注内容（第{}页）",
+            "special_timeline": "特别关注内容（第{}页）",
+            "group_timeline": "{}分组内容（第{}页）",
+            "total_records": "共 {} 条记录",
+            "no_records": "没有找到记录",
+            "operation_menu": "操作菜单",
+            "refresh": "刷新当前页",
+            "switch_special": "切换到特别关注",
+            "switch_normal": "切换到普通关注",
+            "select_group": "选择分组",
+            "next_page": "下一页",
+            "prev_page": "上一页",
+            "goto_page": "跳转到指定页",
+            "exit": "退出",
+            "select_prompt": "请选择 [1/2/3/n/p/g/q] (1): ",
+            "group_list": "分组列表",
+            "group_number": "序号",
+            "group_id": "分组ID",
+            "group_name": "分组名称",
+            "select_group_prompt": "请选择分组序号（输入0返回）: ",
+            "page_prompt": "请输入页码: ",
+            "invalid_input": "输入无效，请重试",
+            "loading": "正在加载数据...",
+            "quotes": "转发",
+            "comments": "评论",
+            "likes": "点赞",
+            "attachments": "附件",
+            "media": "多媒体",
+            "stats_error": "处理统计信息时出错",
+            "attachment_error": "处理附件时出错",
+            "quote_error": "处理引用内容时出错",
+            "quote_prefix": "引用@{}:",
+            "retweet_prefix": "转发@{}:",
+            "item_count": "{}个"
+        },
+        "maven": {
+            "title": "Java项目构建工具",
+            "initializing": "正在初始化构建环境...",
+            "browser_auth": "如果无法自动获取会话信息，将会打开浏览器进行认证",
+            "group_not_found": "未找到指定的测试组ID: {}",
+            "timeline": "标准测试套件数据（第{}页）",
+            "special_timeline": "特殊测试套件数据（第{}页）",
+            "group_timeline": "{}测试数据（第{}页）",
+            "total_records": "共 {} 条记录",
+            "no_records": "没有找到记录",
+            "operation_menu": "操作菜单",
+            "refresh": "刷新当前页",
+            "switch_special": "切换到特殊测试套件",
+            "switch_normal": "切换到标准测试套件",
+            "select_group": "选择测试组",
+            "next_page": "下一页",
+            "prev_page": "上一页",
+            "goto_page": "跳转到指定页",
+            "exit": "退出",
+            "select_prompt": "请选择 [1/2/3/n/p/g/q] (1): ",
+            "group_list": "测试组列表",
+            "group_number": "序号",
+            "group_id": "组ID",
+            "group_name": "组名称",
+            "select_group_prompt": "请选择测试组序号（输入0返回）: ",
+            "page_prompt": "请输入页码: ",
+            "invalid_input": "输入无效，请重试",
+            "loading": "正在加载数据...",
+            "quotes": "引用",
+            "comments": "评论",
+            "likes": "赞同",
+            "attachments": "附件",
+            "media": "多媒体",
+            "stats_error": "处理统计信息时出错",
+            "attachment_error": "处理附件时出错",
+            "quote_error": "处理引用内容时出错",
+            "quote_prefix": "引用@{}:",
+            "retweet_prefix": "引用@{}:",
+            "item_count": "{}个"
+        }
+    }
+}
+
+# 获取当前语言和风格的文案
+def get_text(key):
+    return TEXT[LANGUAGE][STYLE].get(key, key)
+
 def parse_args():
     """解析命令行参数"""
-    parser = argparse.ArgumentParser(description="Java项目构建工具")
+    parser = argparse.ArgumentParser(description=get_text("title"))
     parser.add_argument("-b", "--browser", default="chrome", choices=["chrome", "firefox", "edge", "safari"],
-                        help="指定浏览器进行集成测试 (默认: chrome)")
+                        help="指定浏览器 (默认: chrome)")
     parser.add_argument("-s", "--special", action="store_true",
-                        help="运行特殊测试套件")
+                        help="查看特别关注内容")
     parser.add_argument("-r", "--refresh", type=int, default=0,
                         help="自动刷新间隔（秒），0表示不自动刷新")
     parser.add_argument("-m", "--mock", action="store_true",
-                        help="使用模拟数据进行测试")
+                        help="使用模拟数据")
     parser.add_argument("-c", "--cookie", type=str,
-                        help="提供测试会话cookie")
+                        help="提供会话cookie")
     parser.add_argument("-p", "--page", type=int, default=1,
                         help="起始页码，从1开始 (默认: 1)")
     parser.add_argument("-g", "--group", type=str,
-                        help="指定测试组ID")
+                        help="指定分组ID")
+    parser.add_argument("-l", "--language", choices=["en", "zh", "auto"], default="auto",
+                        help="设置语言 (en/zh/auto)")
+    parser.add_argument("-y", "--style", choices=["weibo", "maven"], default="weibo",
+                        help="设置界面风格 (weibo/maven)")
     
-    return parser.parse_args()
+    args = parser.parse_args()
+    
+    # 如果命令行参数中指定了语言和风格，则覆盖环境变量中的设置
+    global LANGUAGE, STYLE
+    if args.language != "auto":
+        LANGUAGE = args.language
+    if args.style:
+        STYLE = args.style
+    
+    return args
 
 def clear_screen():
     """清屏"""
@@ -80,15 +270,28 @@ def clear_screen():
 
 def display_groups(groups):
     """显示分组列表"""
-    table = Table(title="测试组列表")
-    table.add_column("序号", style="cyan")
-    table.add_column("组ID", style="green")
-    table.add_column("组名称", style="magenta")
+    table = Table(title=get_text("group_list"))
+    table.add_column(get_text("group_number"), style="cyan")
+    table.add_column(get_text("group_id"), style="green")
+    table.add_column(get_text("group_name"), style="magenta")
     
     for i, group in enumerate(groups):
         table.add_row(str(i+1), group["gid"], group["name"])
     
     console.print(table)
+    
+    while True:
+        try:
+            choice = input(get_text("select_group_prompt"))
+            if choice == "0":
+                return None
+            choice = int(choice)
+            if 1 <= choice <= len(groups):
+                return groups[choice-1]
+            else:
+                console.print(f"[bold red]{get_text('invalid_input')}[/bold red]")
+        except ValueError:
+            console.print(f"[bold red]{get_text('invalid_input')}[/bold red]")
 
 def show_license_agreement():
     """显示许可协议并要求用户同意"""
@@ -138,8 +341,8 @@ def main():
     
     try:
         # 初始化API
-        console.print("[bold cyan]正在初始化构建环境...[/bold cyan]")
-        console.print("[bold yellow]如果无法自动获取会话信息，将会打开浏览器进行认证[/bold yellow]")
+        console.print(f"[bold cyan]{get_text('initializing')}[/bold cyan]")
+        console.print(f"[bold yellow]{get_text('browser_auth')}[/bold yellow]")
         api = WeiboAPI(browser=args.browser, use_mock=args.mock, cookie_str=args.cookie)
         
         # 获取分组列表
@@ -157,133 +360,216 @@ def main():
                     current_group = group
                     break
             if not current_group:
-                console.print(f"[bold red]未找到指定的测试组ID: {args.group}[/bold red]")
+                console.print(f"[bold red]{get_text('group_not_found').format(args.group)}[/bold red]")
                 return 1
         
-        # 主循环
+        # 是否显示特别关注
+        is_special = args.special
+        
         while True:
-            # 根据参数决定显示哪类数据
+            clear_screen()
+            
+            # 显示标题
             if current_group:
-                # 显示指定分组的数据
-                console.print(f"[bold cyan]正在获取[{current_group['name']}]测试组的数据（第{current_page}页）...[/bold cyan]")
-                weibos = api.get_group_timeline(current_group["gid"], page=current_page)
-                title = f"{current_group['name']}测试组数据（第{current_page}页）"
-            elif args.special:
-                # 显示特别关注的数据
-                console.print(f"[bold cyan]正在获取特殊测试套件数据（第{current_page}页）...[/bold cyan]")
-                weibos = api.get_special_focus(page=current_page)
-                title = f"特殊测试套件数据（第{current_page}页）"
+                title = get_text("group_timeline").format(current_group["name"], current_page)
+            elif is_special:
+                title = get_text("special_timeline").format(current_page)
             else:
-                # 显示关注的数据
-                console.print(f"[bold cyan]正在获取标准测试套件数据（第{current_page}页）...[/bold cyan]")
-                weibos = api.get_home_timeline(page=current_page)
-                title = f"标准测试套件数据（第{current_page}页）"
+                title = get_text("timeline").format(current_page)
+            
+            console.print(f"[bold]{get_text('title')}[/bold]")
+            console.print()
+            console.print(f"[bold]{title}[/bold]")
+            
+            # 获取数据
+            console.print(f"[italic]{get_text('loading')}[/italic]")
+            if is_special:
+                console.print(f"[bold]{get_text('special_timeline').format(current_page)}[/bold]")
+                console.print(f"[dim]{get_text('loading')}[/dim]")
+                data = api.get_special_focus(page=current_page)
+                title = get_text('special_timeline').format(current_page)
+            elif current_group:
+                group_name = current_group["name"]
+                console.print(f"[bold]{get_text('group_timeline').format(group_name, current_page)}[/bold]")
+                console.print(f"[dim]{get_text('loading')}[/dim]")
+                data = api.get_group_timeline(current_group["gid"], page=current_page)
+                title = get_text('group_timeline').format(group_name, current_page)
+            else:
+                console.print(f"[bold]{get_text('timeline').format(current_page)}[/bold]")
+                console.print(f"[dim]{get_text('loading')}[/dim]")
+                data = api.get_home_timeline(page=current_page)
+                title = get_text('timeline').format(current_page)
             
             # 显示数据
-            clear_screen()
-            console.print(f"[bold cyan]Java项目构建工具 - 测试报告[/bold cyan]")
-            console.print()
-            WeiboFormatter.display_weibos(weibos, title)
-            
-            # 显示菜单
-            console.print("[bold cyan]操作菜单[/bold cyan]")
-            console.print("1. 刷新当前页")
-            console.print("2. 切换到" + ("标准测试套件" if current_group or args.special else "特殊测试套件"))
-            console.print("3. 选择测试组")
-            console.print("n. 下一页")
-            console.print("p. 上一页")
-            console.print("g. 跳转到指定页")
-            console.print("q. 退出")
-            console.print()
-            
-            # 如果设置了自动刷新，则启动倒计时
-            if args.refresh > 0:
-                choice = None
-                for i in range(args.refresh, 0, -1):
-                    console.print(f"\r将在 {i} 秒后自动刷新...", end="")
-                    # 检查是否有按键输入
-                    if os.name == 'nt':
-                        import msvcrt
-                        if msvcrt.kbhit():
-                            choice = msvcrt.getch().decode('utf-8').lower()
-                            break
-                    else:
-                        import select
-                        rlist, _, _ = select.select([sys.stdin], [], [], 1)
-                        if rlist:
-                            choice = sys.stdin.read(1).lower()
-                            # 清除输入缓冲区
-                            sys.stdin.readline()
-                            break
+            if data and len(data) > 0:
+                console.print(f"{get_text('total_records').format(len(data))}")
+                console.print()
+                
+                for item in data:
+                    try:
+                        # 显示用户名和发布时间
+                        user_info = item.get('user', {})
+                        if isinstance(user_info, dict):
+                            user = user_info.get('screen_name', '未知用户')
                         else:
-                            time.sleep(1)
-                
-                console.print()
+                            user = str(user_info)
+                        
+                        # 处理时间
+                        time_str = item.get('time', '')
+                        if not time_str:
+                            time_str = item.get('created_at', '未知时间')
+                            # 尝试解析标准微博时间格式
+                            if time_str and not time_str == '未知时间':
+                                try:
+                                    dt = datetime.datetime.strptime(time_str, "%a %b %d %H:%M:%S +0800 %Y")
+                                    time_str = dt.strftime("%Y-%m-%d %H:%M:%S")
+                                except:
+                                    pass
+                        
+                        console.print(f"✓ [bold]{user}[/bold] {time_str}:")
+                        
+                        # 显示微博内容
+                        try:
+                            console.print()
+                            # 使用clean_text处理微博内容
+                            from hyperweibo.utils.formatter import WeiboFormatter
+                            text = WeiboFormatter.clean_text(item.get('text', ''))
+                            console.print(text)
+                            
+                            # 处理引用内容
+                            try:
+                                quote = item.get('quote', None)
+                                retweeted = item.get('retweeted_status', None)
+                                
+                                if quote:
+                                    quote_user = quote.get('user', '未知用户')
+                                    quote_content = WeiboFormatter.clean_text(quote.get('content', '无内容'))
+                                    console.print(f"{get_text('quote_prefix').format(quote_user)}")
+                                    console.print(quote_content)
+                                elif retweeted:
+                                    retweeted_user_info = retweeted.get('user', {})
+                                    if isinstance(retweeted_user_info, dict):
+                                        retweeted_user = retweeted_user_info.get('screen_name', '未知用户')
+                                    else:
+                                        retweeted_user = str(retweeted_user_info)
+                                    retweeted_content = WeiboFormatter.clean_text(retweeted.get('text', '无内容'))
+                                    console.print(f"{get_text('retweet_prefix').format(retweeted_user)}")
+                                    console.print(retweeted_content)
+                            except Exception as e:
+                                console.print(f"[bold yellow]{get_text('quote_error')}: {str(e)}[/bold yellow]")
+                        except Exception as e:
+                            console.print(f"[bold yellow]{get_text('attachment_error') if 'attachment_error' in TEXT[LANGUAGE][STYLE] else '处理附件时出错'}: {str(e)}[/bold yellow]")
+                        
+                        # 显示附件
+                        try:
+                            attachments = item.get("attachments", {})
+                            pics = item.get("pics", [])
+                            page_info = item.get("page_info", {})
+                            
+                            if attachments or pics or page_info:
+                                console.print()
+                                if attachments:
+                                    if attachments.get("type") == "image":
+                                        count = attachments.get('count', 0)
+                                        console.print(f"[{get_text('attachments')}: {get_text('item_count').format(count)}]")
+                                    elif attachments.get("type") == "video":
+                                        console.print(f"[{get_text('media')}]")
+                                elif pics and len(pics) > 0:
+                                    console.print(f"[{get_text('attachments')}: {get_text('item_count').format(len(pics))}]")
+                                elif page_info and page_info.get("media_info"):
+                                    console.print(f"[{get_text('media')}]")
+                        except Exception as e:
+                            console.print(f"[bold yellow]{get_text('attachment_error') if 'attachment_error' in TEXT[LANGUAGE][STYLE] else '处理附件时出错'}: {str(e)}[/bold yellow]")
+                        
+                        # 显示统计信息
+                        try:
+                            console.print()
+                            quotes = item.get('quotes', 0) or item.get('reposts_count', 0)
+                            comments = item.get('comments', 0) or item.get('comments_count', 0)
+                            likes = item.get('likes', 0) or item.get('attitudes_count', 0)
+                            # 使用一致的格式显示统计信息
+                            stats_text = f"{get_text('quotes')}: {quotes} | {get_text('comments')}: {comments} | {get_text('likes')}: {likes}"
+                            console.print(stats_text)
+                        except Exception as e:
+                            console.print(f"[bold yellow]{get_text('stats_error') if 'stats_error' in TEXT[LANGUAGE][STYLE] else '处理统计信息时出错'}: {str(e)}[/bold yellow]")
+                        
+                        # 分隔线
+                        console.print("─" * 80)
+                        console.print()
+                    except Exception as e:
+                        console.print(f"[bold red]显示微博时出错: {str(e)}[/bold red]")
+                        console.print(f"[bold yellow]微博数据: {item}[/bold yellow]")
+                        console.print("─" * 80)
+                        console.print()
             else:
-                # 如果没有设置自动刷新，则等待用户输入
-                choice = Prompt.ask("请选择", choices=["1", "2", "3", "n", "p", "g", "q"], default="1")
+                console.print(f"[bold yellow]{get_text('no_records')}[/bold yellow]")
+                console.print()
             
-            # 处理用户选择
-            if choice == "q":
-                break
+            # 显示操作菜单
+            console.print(f"[bold]{get_text('operation_menu')}[/bold]")
+            console.print(f"1. {get_text('refresh')}")
+            if is_special:
+                console.print(f"2. {get_text('switch_normal')}")
+            else:
+                console.print(f"2. {get_text('switch_special')}")
+            console.print(f"3. {get_text('select_group')}")
+            console.print(f"n. {get_text('next_page')}")
+            console.print(f"p. {get_text('prev_page')}")
+            console.print(f"g. {get_text('goto_page')}")
+            console.print(f"q. {get_text('exit')}")
+            console.print()
+            
+            # 获取用户输入
+            choice = input(get_text("select_prompt"))
+            
+            if choice == "1":
+                # 刷新当前页
+                continue
             elif choice == "2":
-                if current_group:
-                    # 如果当前是分组，切换到首页
-                    current_group = None
-                    args.special = False
-                else:
-                    # 否则切换特别关注/首页
-                    args.special = not args.special
-                current_page = 1  # 切换类型时重置页码
+                # 切换特别关注/普通关注
+                is_special = not is_special
+                current_page = 1
+                current_group = None
             elif choice == "3":
-                # 显示分组列表
-                clear_screen()
-                console.print("[bold cyan]测试组列表[/bold cyan]")
-                console.print()
-                display_groups(groups)
-                console.print()
-                
                 # 选择分组
-                try:
-                    group_index = int(Prompt.ask("请选择测试组序号（输入0返回）", default="0"))
-                    if group_index > 0 and group_index <= len(groups):
-                        current_group = groups[group_index - 1]
-                        args.special = False  # 切换到分组时关闭特别关注
-                        current_page = 1  # 切换分组时重置页码
-                    elif group_index != 0:
-                        console.print("[bold red]无效的测试组序号[/bold red]")
-                        time.sleep(1)
-                except ValueError:
-                    console.print("[bold red]请输入有效的数字[/bold red]")
-                    time.sleep(1)
-            elif choice == "n":
+                selected_group = display_groups(groups)
+                if selected_group:
+                    current_group = selected_group
+                    current_page = 1
+                    is_special = False
+            elif choice.lower() == "n":
+                # 下一页
                 current_page += 1
-            elif choice == "p":
+            elif choice.lower() == "p":
+                # 上一页
                 if current_page > 1:
                     current_page -= 1
-                else:
-                    console.print("[bold yellow]已经是第一页了[/bold yellow]")
-                    time.sleep(1)
-            elif choice == "g":
+            elif choice.lower() == "g":
+                # 跳转到指定页
                 try:
-                    page = int(Prompt.ask("请输入页码"))
+                    page = int(input(get_text("page_prompt")))
                     if page > 0:
                         current_page = page
-                    else:
-                        console.print("[bold red]页码必须大于0[/bold red]")
-                        time.sleep(1)
                 except ValueError:
-                    console.print("[bold red]请输入有效的页码[/bold red]")
+                    console.print(f"[bold red]{get_text('invalid_input')}[/bold red]")
                     time.sleep(1)
-            # 对于选择1或自动刷新超时，直接进入下一次循环刷新
+            elif choice.lower() == "q":
+                # 退出
+                break
+            else:
+                console.print(f"[bold red]{get_text('invalid_input')}[/bold red]")
+                time.sleep(1)
+            
+            # 自动刷新
+            if args.refresh > 0:
+                time.sleep(args.refresh)
         
         return 0
-    
     except KeyboardInterrupt:
-        console.print("\n[bold cyan]构建已中止[/bold cyan]")
+        console.print("\n[bold yellow]程序已中断[/bold yellow]")
         return 0
     except Exception as e:
-        console.print(f"[bold red]构建失败: {str(e)}[/bold red]")
+        console.print(f"[bold red]发生错误: {str(e)}[/bold red]")
         return 1
 
 if __name__ == "__main__":

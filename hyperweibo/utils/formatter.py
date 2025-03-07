@@ -67,11 +67,50 @@ class WeiboFormatter:
     @staticmethod
     def clean_text(text: str) -> str:
         """清理文本内容，去除HTML标签等"""
-        # 去除HTML标签
+        if not text:
+            return ""
+            
+        # 处理表情符号
+        # 处理带有alt属性的表情符号
+        text = re.sub(r'<span class="url-icon"><img alt=\[([^\]]*)\][^>]*?/></span>', r'[\1]', text)
+        text = re.sub(r'<span class="url-icon"><img alt="?\[?([^\]"]*)\]?"?[^>]*?/></span>', r'[\1]', text)
+        
+        # 处理没有alt属性的表情符号
+        text = re.sub(r'<span class="url-icon"><img[^>]*></span>', r'[表情]', text)
+        
+        # 处理@用户链接
+        text = re.sub(r'<a href=\'\/n\/([^\']+)\'>@([^<]+)</a>', r'@\2', text)
+        
+        # 处理话题标签
+        text = re.sub(r'<a[^>]*?><span class="surl-text">#([^#]+)#</span></a>', r'#\1#', text)
+        
+        # 处理普通链接
+        text = re.sub(r'<a[^>]*?href="([^"]+)"[^>]*?><span class="surl-text">([^<]+)</span></a>', r'\2', text)
+        text = re.sub(r'<a[^>]*?href="([^"]+)"[^>]*?><span class=\'url-icon\'><img[^>]*?></span><span class="surl-text">([^<]+)</span></a>', r'\2', text)
+        
+        # 处理视频链接
+        text = re.sub(r'<a[^>]*?href="[^"]*?video[^"]*?"[^>]*?>.*?</a>', r'[视频链接]', text)
+        
+        # 处理全文链接
+        text = re.sub(r'<a href="\/status\/\d+">全文</a>', r'[全文]', text)
+        
+        # 处理换行
+        text = re.sub(r'<br\s*/?>', '\n', text)
+        
+        # 去除其他HTML标签
         text = re.sub(r'<[^>]+>', '', text)
-        # 替换表情符号的占位符
+        
+        # 替换表情符号的占位符，确保格式一致
         text = re.sub(r'\[([^\]]+)\]', r'[\1]', text)
-        return text
+        
+        # 清理多余的空白字符
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r' +', ' ', text)
+        
+        # 清理URL编码
+        text = re.sub(r'%[0-9A-Fa-f]{2}', '', text)
+        
+        return text.strip()
     
     @staticmethod
     def format_weibo(weibo: Dict[str, Any]) -> Text:
@@ -100,9 +139,14 @@ class WeiboFormatter:
             retweeted = weibo.get('retweeted_status', None)
             retweeted_text = ""
             if retweeted:
-                retweeted_user = retweeted.get('user', {}).get('screen_name', '未知用户')
-                retweeted_text = WeiboFormatter.clean_text(retweeted.get('text', ''))
-                retweeted_text = f"\n\n[bold cyan]引用@{retweeted_user}:[/bold cyan]\n{retweeted_text}"
+                retweeted_user = retweeted.get('user', {})
+                if isinstance(retweeted_user, dict):
+                    retweeted_user_name = retweeted_user.get('screen_name', '未知用户')
+                else:
+                    retweeted_user_name = str(retweeted_user)
+                
+                retweeted_text_content = WeiboFormatter.clean_text(retweeted.get('text', ''))
+                retweeted_text = f"\n\n[bold cyan]转发@{retweeted_user_name}:[/bold cyan]\n{retweeted_text_content}"
             
             # 处理图片
             pics = weibo.get('pics', [])
@@ -120,7 +164,7 @@ class WeiboFormatter:
             comments_count = weibo.get('comments_count', 0)
             attitudes_count = weibo.get('attitudes_count', 0)
             reposts_count = weibo.get('reposts_count', 0)
-            stats_text = f"\n\n[dim]引用: {reposts_count} | 评论: {comments_count} | 赞同: {attitudes_count}[/dim]"
+            stats_text = f"\n\n[dim]转发: {reposts_count} | 评论: {comments_count} | 点赞: {attitudes_count}[/dim]"
             
             # 组合完整内容，不使用Panel，直接返回格式化的文本
             header = f"[bold]{verified_mark}{user_name}[/bold] [dim]{created_at}:[/dim]"

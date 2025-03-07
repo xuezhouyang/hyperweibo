@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Maven风格的启动脚本
+# 微博命令行工具
 # 用法: ./mvn [命令] [选项]
 # 
 # 作者: Xue Zhouyang <xuezhouyang@gmail.com>
@@ -23,13 +23,86 @@
 #        法律责任、数据泄露、系统损害或任何其他形式的损失，均与原作者无关，原作者不承担
 #        任何法律或道德责任。
 
-# 默认命令
-COMMAND="test"
+# 默认设置
+LANGUAGE="auto"  # 自动检测系统语言
+STYLE="weibo"    # 默认使用微博风格
+COMMAND="home"   # 默认命令
 
-# 解析命令
-if [ $# -gt 0 ]; then
-    COMMAND="$1"
-    shift
+# 解析选项
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -l|--language)
+            LANGUAGE="$2"
+            shift 2
+            ;;
+        -s|--style)
+            STYLE="$2"
+            shift 2
+            ;;
+        *)
+            # 如果不是选项，则视为命令
+            COMMAND="$1"
+            shift
+            break
+            ;;
+    esac
+done
+
+# 如果指定了maven风格，则使用Maven相关文案
+if [ "$STYLE" = "maven" ]; then
+    STYLE_PREFIX="test"
+    HOME_CMD="test"
+    SPECIAL_CMD="test:special"
+    MOCK_CMD="test:mock"
+    GROUP_CMD="test:group"
+    
+    HOME_DESC="运行标准测试套件"
+    SPECIAL_DESC="运行特殊测试套件"
+    MOCK_DESC="使用模拟数据运行测试"
+    GROUP_DESC="运行指定组的测试"
+    CLEAN_DESC="清理项目"
+    INSTALL_DESC="安装依赖"
+    LICENSE_DESC="显示许可协议"
+    AGREE_DESC="显示许可协议并要求用户同意"
+    HELP_DESC="显示帮助信息"
+    
+    TOOL_NAME="Java项目构建工具"
+else
+    # 使用微博相关文案
+    STYLE_PREFIX=""
+    HOME_CMD="home"
+    SPECIAL_CMD="special"
+    MOCK_CMD="mock"
+    GROUP_CMD="group"
+    
+    # 根据语言设置文案
+    if [ "$LANGUAGE" = "en" ]; then
+        # 英文文案
+        HOME_DESC="View your Weibo timeline"
+        SPECIAL_DESC="View your special focus timeline"
+        MOCK_DESC="Use mock data for testing"
+        GROUP_DESC="View a specific group's timeline"
+        CLEAN_DESC="Clean cache files"
+        INSTALL_DESC="Install dependencies"
+        LICENSE_DESC="Display license agreement"
+        AGREE_DESC="Display and agree to license"
+        HELP_DESC="Display help information"
+        
+        TOOL_NAME="Weibo Command Line Tool"
+    else
+        # 中文文案
+        HOME_DESC="查看微博关注内容"
+        SPECIAL_DESC="查看特别关注内容"
+        MOCK_DESC="使用模拟数据"
+        GROUP_DESC="查看指定分组内容"
+        CLEAN_DESC="清理缓存文件"
+        INSTALL_DESC="安装依赖"
+        LICENSE_DESC="显示许可协议"
+        AGREE_DESC="显示许可协议并要求用户同意"
+        HELP_DESC="显示帮助信息"
+        
+        TOOL_NAME="微博命令行工具"
+    fi
 fi
 
 # 检查用户是否已经同意许可协议
@@ -84,96 +157,176 @@ check_agreement "$COMMAND"
 
 # 根据命令执行不同的操作
 case "$COMMAND" in
-    "test")
-        # 运行测试
-        python hyperweibo.py "$@"
+    "home"|"test")
+        # 查看微博关注内容
+        python hyperweibo.py -l "$LANGUAGE" -y "$STYLE" "$@"
         ;;
-    "test:special")
-        # 运行特殊测试
-        python hyperweibo.py -s "$@"
-        ;;
-    "test:mock")
-        # 使用模拟数据运行测试
-        python hyperweibo.py -m "$@"
-        ;;
-    "test:group")
-        # 运行指定组的测试
-        if [ $# -gt 0 ]; then
-            python hyperweibo.py -g "$1" "${@:2}"
+    "special"|"test:special")
+        # 查看特别关注内容
+        if [ "$1" = "special" ] && [ "$2" = "mock" ]; then
+            # 如果命令是"special mock"，则同时使用特别关注和模拟数据
+            python hyperweibo.py --special --mock -l "$LANGUAGE" -y "$STYLE"
         else
-            echo "错误: 缺少组ID参数"
-            echo "用法: ./mvn test:group <组ID> [选项]"
+            # 否则只使用特别关注
+            python hyperweibo.py --special -l "$LANGUAGE" -y "$STYLE"
+        fi
+        ;;
+    "mock"|"test:mock")
+        # 使用模拟数据
+        python hyperweibo.py --mock -l "$LANGUAGE" -y "$STYLE"
+        ;;
+    "group"|"test:group")
+        # 查看指定分组内容
+        if [ $# -gt 0 ]; then
+            python hyperweibo.py -g "$1" -l "$LANGUAGE" -y "$STYLE" "${@:2}"
+        else
+            if [ "$LANGUAGE" = "en" ]; then
+                echo "Error: Missing group ID parameter"
+                echo "Usage: ./mvn $GROUP_CMD <group_id> [options]"
+            else
+                echo "错误: 缺少分组ID参数"
+                echo "用法: ./mvn $GROUP_CMD <分组ID> [选项]"
+            fi
             exit 1
         fi
         ;;
     "clean")
-        # 清理项目
-        echo "正在清理项目..."
+        # 清理缓存文件
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Cleaning cache files..."
+        else
+            echo "正在清理缓存文件..."
+        fi
         find . -name "__pycache__" -type d -exec rm -rf {} +
         find . -name "*.pyc" -delete
-        echo "清理完成"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Cleaning completed"
+        else
+            echo "清理完成"
+        fi
         ;;
     "install")
         # 安装依赖
-        echo "正在安装依赖..."
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Installing dependencies..."
+        else
+            echo "正在安装依赖..."
+        fi
         pip install -r hyperweibo/requirements.txt
-        echo "安装完成"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Installation completed"
+        else
+            echo "安装完成"
+        fi
         ;;
     "license")
         # 显示许可协议
-        echo "显示许可协议..."
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Displaying license agreement..."
+        else
+            echo "显示许可协议..."
+        fi
         if [ -f "LICENSE" ]; then
             cat LICENSE
         else
-            echo "错误: 找不到LICENSE文件"
+            if [ "$LANGUAGE" = "en" ]; then
+                echo "Error: LICENSE file not found"
+            else
+                echo "错误: 找不到LICENSE文件"
+            fi
             exit 1
         fi
         ;;
     "agree")
         # 显示许可协议并要求用户同意
-        echo "显示许可协议并要求用户同意..."
-        if [ -f "agree.py" ]; then
-            python agree.py "$@"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Displaying license agreement and requesting consent..."
         else
-            echo "错误: 找不到agree.py文件"
+            echo "显示许可协议并要求用户同意..."
+        fi
+        if [ -f "agree.py" ]; then
+            python agree.py -l "$LANGUAGE" "$@"
+        else
+            if [ "$LANGUAGE" = "en" ]; then
+                echo "Error: agree.py file not found"
+            else
+                echo "错误: 找不到agree.py文件"
+            fi
             exit 1
         fi
         ;;
     "help")
         # 显示帮助信息
-        echo "Java项目构建工具"
+        echo "$TOOL_NAME"
         echo ""
-        echo "用法: ./mvn [命令] [选项]"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Usage: ./mvn [command] [options]"
+        else
+            echo "用法: ./mvn [命令] [选项]"
+        fi
         echo ""
-        echo "可用命令:"
-        echo "  test              运行标准测试套件"
-        echo "  test:special      运行特殊测试套件"
-        echo "  test:mock         使用模拟数据运行测试"
-        echo "  test:group <组ID> 运行指定组的测试"
-        echo "  clean             清理项目"
-        echo "  install           安装依赖"
-        echo "  license           显示许可协议"
-        echo "  agree             显示许可协议并要求用户同意"
-        echo "  help              显示帮助信息"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Available commands:"
+        else
+            echo "可用命令:"
+        fi
+        echo "  $HOME_CMD              $HOME_DESC"
+        echo "  $SPECIAL_CMD           $SPECIAL_DESC"
+        echo "  $MOCK_CMD              $MOCK_DESC"
+        echo "  $GROUP_CMD <ID>        $GROUP_DESC"
+        echo "  clean             $CLEAN_DESC"
+        echo "  install           $INSTALL_DESC"
+        echo "  license           $LICENSE_DESC"
+        echo "  agree             $AGREE_DESC"
+        echo "  help              $HELP_DESC"
         echo ""
-        echo "常用选项:"
-        echo "  -b, --browser <浏览器>  指定浏览器进行集成测试 (chrome/firefox/edge/safari)"
-        echo "  -r, --refresh <秒数>    设置自动刷新间隔"
-        echo "  -p, --page <页码>       指定起始页码"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Common options:"
+        else
+            echo "常用选项:"
+        fi
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "  -b, --browser <browser>  Specify browser (chrome/firefox/edge/safari)"
+            echo "  -r, --refresh <seconds>  Set auto-refresh interval"
+            echo "  -p, --page <page>        Specify starting page"
+            echo "  -l, --language <lang>    Set language (en/zh/auto)"
+            echo "  -s, --style <style>      Set UI style (weibo/maven)"
+        else
+            echo "  -b, --browser <浏览器>  指定浏览器 (chrome/firefox/edge/safari)"
+            echo "  -r, --refresh <秒数>    设置自动刷新间隔"
+            echo "  -p, --page <页码>       指定起始页码"
+            echo "  -l, --language <语言>   设置语言 (en/zh/auto)"
+            echo "  -s, --style <风格>      设置界面风格 (weibo/maven)"
+        fi
         echo ""
-        echo "示例:"
-        echo "  ./mvn test                     运行标准测试套件"
-        echo "  ./mvn test:special             运行特殊测试套件"
-        echo "  ./mvn test -b firefox          使用Firefox运行测试"
-        echo "  ./mvn test:group G123456 -p 2  运行指定组的测试，从第2页开始"
-        echo "  ./mvn agree -f                 强制显示许可协议并要求用户同意"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Examples:"
+        else
+            echo "示例:"
+        fi
+        echo "  ./mvn $HOME_CMD                     $HOME_DESC"
+        echo "  ./mvn $SPECIAL_CMD                  $SPECIAL_DESC"
+        echo "  ./mvn $HOME_CMD -b firefox          $HOME_DESC (Firefox)"
+        echo "  ./mvn $GROUP_CMD G123456 -p 2       $GROUP_DESC"
+        echo "  ./mvn agree -f                      $AGREE_DESC"
+        echo "  ./mvn -l en                         $HOME_DESC (English)"
+        echo "  ./mvn -s maven                      $HOME_DESC (Maven style)"
         echo ""
-        echo "注意: 首次使用本软件前，必须同意许可协议。系统将自动显示许可协议并要求您同意。"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Note: You must agree to the license agreement before using this software. The system will automatically display the license agreement and ask for your consent."
+        else
+            echo "注意: 首次使用本软件前，必须同意许可协议。系统将自动显示许可协议并要求您同意。"
+        fi
         ;;
     *)
         # 未知命令
-        echo "错误: 未知命令 '$COMMAND'"
-        echo "运行 './mvn help' 获取帮助"
+        if [ "$LANGUAGE" = "en" ]; then
+            echo "Error: Unknown command '$COMMAND'"
+            echo "Run './mvn help' for help"
+        else
+            echo "错误: 未知命令 '$COMMAND'"
+            echo "运行 './mvn help' 获取帮助"
+        fi
         exit 1
         ;;
 esac 

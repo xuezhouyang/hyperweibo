@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Java项目构建工具
+微博命令行工具
 
 作者: Xue Zhouyang <xuezhouyang@gmail.com>
 许可证: MIT License (Modified with Extended Disclaimers)
@@ -27,12 +27,56 @@ Java项目构建工具
 
 import sys
 import os
+import locale
+import argparse
 
 # 添加当前目录到模块搜索路径
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# 导入主程序
-from hyperweibo.main import main
+def parse_args():
+    """解析命令行参数"""
+    parser = argparse.ArgumentParser(description="微博命令行工具")
+    parser.add_argument("-l", "--language", choices=["en", "zh", "auto"], default="auto",
+                        help="设置语言 (en/zh/auto)")
+    parser.add_argument("-s", "--style", choices=["weibo", "maven"], default="weibo",
+                        help="设置界面风格 (weibo/maven)")
+    parser.add_argument("-y", "--style-passthrough", dest="style", 
+                        help=argparse.SUPPRESS)  # 用于从mvn脚本传递风格参数
+    
+    # 添加其他参数
+    parser.add_argument("-b", "--browser", default="chrome", choices=["chrome", "firefox", "edge", "safari"],
+                        help="指定浏览器 (默认: chrome)")
+    parser.add_argument("-r", "--refresh", type=int, default=0,
+                        help="自动刷新间隔（秒），0表示不自动刷新")
+    parser.add_argument("-m", "--mock", action="store_true",
+                        help="使用模拟数据")
+    parser.add_argument("-c", "--cookie", type=str,
+                        help="提供会话cookie")
+    parser.add_argument("-p", "--page", type=int, default=1,
+                        help="起始页码，从1开始 (默认: 1)")
+    parser.add_argument("-g", "--group", type=str,
+                        help="指定分组ID")
+    parser.add_argument("-S", "--special", action="store_true",
+                        help="查看特别关注内容")
+    
+    args, unknown = parser.parse_known_args()
+    
+    # 如果语言设置为auto，则自动检测系统语言
+    if args.language == "auto":
+        system_lang, _ = locale.getdefaultlocale()
+        args.language = "en" if system_lang and system_lang.startswith("en") else "zh"
+    
+    return args
 
 if __name__ == "__main__":
+    # 解析语言和风格参数
+    args = parse_args()
+    
+    # 设置环境变量，传递给main模块
+    os.environ["HYPERWEIBO_LANGUAGE"] = args.language
+    os.environ["HYPERWEIBO_STYLE"] = args.style
+    
+    # 导入主程序
+    from hyperweibo.main import main
+    
     sys.exit(main()) 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Java项目构建工具
+weibo命令行工具
 
 作者: Xue Zhouyang <xuezhouyang@gmail.com>
 许可证: MIT License (Modified with Extended Disclaimers)

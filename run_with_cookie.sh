@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 使用Maven构建工具运行项目
+# 使用Weibo工具运行项目
 # 
 # 作者: Xue Zhouyang <xuezhouyang@gmail.com>
 # 许可证: MIT License (Modified with Extended Disclaimers)

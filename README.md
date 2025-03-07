@@ -1,8 +1,22 @@
-# Java项目构建工具
+# HyperWeibo 命令行工具
 
-一个简单的Java项目构建和测试工具，支持查看不同测试套件的测试结果。
+一个简洁高效的微博命令行客户端，支持查看关注、特别关注和分组微博内容。
 
 **作者：** Xue Zhouyang <xuezhouyang@gmail.com>
+
+## 📋 目录
+
+- [法律免责声明](#法律免责声明与使用限制)
+- [功能特点](#功能特点)
+- [安装依赖](#安装依赖)
+- [使用方法](#使用方法)
+- [交互界面](#交互界面)
+- [操作说明](#操作说明)
+- [命令对照表](#命令对照表)
+- [自动登录功能](#自动登录功能)
+- [常见问题](#常见问题)
+- [注意事项](#注意事项)
+- [许可证](#许可证)
 
 ## 法律免责声明与使用限制
 
@@ -20,95 +34,20 @@
 
 6. 使用本软件即表示您确认已阅读、理解并同意遵守上述所有条款和条件。如不同意，请立即停止使用本软件并删除所有相关文件。
 
-## 最终解释权
-
-本许可协议的最终解释权归作者Xue Zhouyang所有。在任何情况下，本许可协议的中文版本应当作为唯一的官方版本，具有最终的法律约束力。若本许可协议的中文版本与任何其他语言版本之间存在不一致或冲突，应以中文版本为准。
-
-## 争议解决与管辖权
-
-**专属管辖权条款：**
-
-1. 因本软件或本许可协议引起的或与之相关的任何争议、纠纷或索赔，包括但不限于其存在性、有效性、解释、履行、违约或终止，或因本协议引起的任何非合同性争议（以下统称"争议"），应当首先通过友好协商解决。
-
-2. 若争议在协商开始后三十(30)日内未能解决，则任何一方均可将该争议提交至**中华人民共和国北京市朝阳区人民法院专属管辖**，通过诉讼程序最终解决。
-
-3. 各方在此不可撤销地同意并承认中华人民共和国北京市朝阳区人民法院对任何此类争议具有专属管辖权，并放弃对该管辖权提出任何异议的权利。
-
-4. 本条款适用于全球范围内的任何诉讼或法律程序，无论其发生地或提起地为何处。
-
-## 损害赔偿与补偿
-
-若任何个人或实体违反本许可协议的任何条款，或因使用本软件而导致作者遭受任何形式的损失、损害或法律责任，该个人或实体应当向作者提供全面赔偿，包括但不限于：
-
-1. 作者因应对相关争议、诉讼或索赔而产生的全部法律费用、律师费和诉讼费用；
-2. 作者在处理相关事务期间的工作时间损失，按照每小时人民币5,000元或等值外币计算；
-3. 作者因此遭受的任何直接或间接收入损失；
-4. 对作者声誉或商业价值造成的任何损害；
-5. 任何惩罚性赔偿金，其金额不低于实际损害的三倍。
-
-上述赔偿义务不受本许可协议中任何责任限制条款的限制，且在本许可协议终止后仍然有效。
-
-## ENGLISH VERSION (FOR REFERENCE ONLY - CHINESE VERSION SHALL PREVAIL)
-
-**IMPORTANT NOTICE: THE CHINESE VERSION OF THIS LICENSE AGREEMENT SHALL BE THE ONLY OFFICIAL VERSION AND SHALL PREVAIL IN CASE OF ANY INCONSISTENCY OR CONFLICT WITH THIS ENGLISH VERSION. THE FINAL RIGHT OF INTERPRETATION OF THIS LICENSE AGREEMENT BELONGS TO THE AUTHOR XUE ZHOUYANG.**
-
-### LEGAL DISCLAIMER AND USAGE RESTRICTIONS
-
-**IMPORTANT: PLEASE READ THE FOLLOWING STATEMENT CAREFULLY BEFORE USING THIS SOFTWARE**
-
-1. This software is for the author's personal local testing use only and shall not be used for any commercial purpose or profit-making activity.
-
-2. Any individual or entity using this software shall bear all risks. The author expressly disclaims any liability for any direct, indirect, incidental, special, punitive, or consequential damages arising from the use of this software, whether such damages are foreseeable or not, and regardless of the theory of liability.
-
-3. Users must comply with all applicable national, regional, and international laws and regulations, including but not limited to computer security laws, cybersecurity laws, data protection laws, and privacy laws. The author shall not be liable for any violation of laws and regulations.
-
-4. **TERRITORIAL RESTRICTION:** It is strictly prohibited to use this software within the territory of the People's Republic of China and the United States of America, or to request, access, process, or store any data, information, or assets associated with or subject to the jurisdiction of these two countries through this software.
-
-5. The author shall not be responsible for any direct or indirect consequences resulting from any secondary development, modification, distribution, or use of this project, including but not limited to legal liability, data leakage, system damage, or any other form of loss.
-
-6. By using this software, you acknowledge that you have read, understood, and agreed to comply with all the terms and conditions above. If you do not agree, please stop using this software immediately and delete all related files.
-
-### FINAL RIGHT OF INTERPRETATION
-
-The final right of interpretation of this license agreement belongs to the author Xue Zhouyang. In all circumstances, the Chinese version of this license agreement shall be the only official version and shall have final legal binding force. In case of any inconsistency or conflict between the Chinese version of this license agreement and any version in other languages, the Chinese version shall prevail.
-
-### DISPUTE RESOLUTION AND JURISDICTION
-
-**EXCLUSIVE JURISDICTION CLAUSE:**
-
-1. Any dispute, controversy, or claim arising out of or relating to this software or this license agreement, including its existence, validity, interpretation, performance, breach, or termination, or any non-contractual dispute arising from this agreement (collectively referred to as "Dispute"), shall first be resolved through friendly negotiation.
-
-2. If the Dispute is not resolved within thirty (30) days after the commencement of negotiation, either party may submit the Dispute to the **exclusive jurisdiction of the People's Court of Chaoyang District, Beijing, People's Republic of China**, for final resolution through litigation.
-
-3. The parties hereby irrevocably consent and submit to the exclusive jurisdiction of the People's Court of Chaoyang District, Beijing, People's Republic of China, for any such Dispute and waive any objections to such jurisdiction.
-
-4. This provision applies to any litigation or legal proceedings worldwide, regardless of where they are initiated or brought.
-
-### DAMAGES AND COMPENSATION
-
-If any individual or entity violates any provision of this license agreement, or if the author suffers any form of loss, damage, or legal liability due to the use of this software, such individual or entity shall provide full compensation to the author, including but not limited to:
-
-1. All legal fees, attorney fees, and litigation costs incurred by the author in responding to relevant disputes, litigation, or claims;
-2. Loss of the author's working time in handling related matters, calculated at RMB 5,000 per hour or equivalent foreign currency;
-3. Any direct or indirect income loss suffered by the author;
-4. Any damage to the author's reputation or commercial value;
-5. Any punitive damages, the amount of which shall not be less than three times the actual damages.
-
-The above compensation obligations are not limited by any liability limitation provisions in this license agreement and shall remain effective after the termination of this license agreement.
-
-**完整的法律条款请参阅[LICENSE](LICENSE)文件。**
+> **完整的法律条款请参阅[LICENSE](LICENSE)文件。**
 
 ## 功能特点
 
-- 支持查看标准测试套件结果
-- 支持查看特殊测试套件结果
-- 支持查看任意测试组的结果
-- 支持分页查看测试数据
-- 美观的终端界面
-- 自动刷新功能
-- 自动认证功能
-- 无需手动输入凭据，直接使用浏览器中的会话信息
-- Maven风格的命令行接口
+✅ 支持查看关注的微博内容  
+✅ 支持查看特别关注的微博内容  
+✅ 支持查看任意分组的微博内容  
+✅ 支持分页浏览微博数据  
+✅ 美观的终端界面展示  
+✅ 自动刷新功能  
+✅ 自动登录功能  
+✅ 无需手动输入凭据，直接使用浏览器中的会话信息  
+✅ 简洁的命令行接口  
+✅ HTML解析结果缓存机制，提高性能  
 
 ## 安装依赖
 
@@ -116,7 +55,7 @@ The above compensation obligations are not limited by any liability limitation p
 # 使用pip安装依赖
 pip install -r hyperweibo/requirements.txt
 
-# 或使用Maven风格命令
+# 或使用简化命令
 ./mvn install
 ```
 
@@ -124,42 +63,31 @@ pip install -r hyperweibo/requirements.txt
 
 ### 准备工作
 
-1. 确保您已经在浏览器（Chrome、Firefox、Edge或Safari）中完成认证
-2. 如果未认证，程序会自动打开浏览器让您进行认证
+1. 确保您已经在浏览器（Chrome、Firefox、Edge或Safari）中登录微博
+2. 如果未登录，程序会自动打开浏览器让您进行登录
 
-### Maven风格命令
+### 命令行使用方式
 
-本工具提供了类似Maven的命令行接口，使用更加简洁直观：
+本工具提供了简洁的命令行接口：
 
-```bash
-# 运行标准测试套件（查看关注的内容）
-./mvn test
-
-# 运行特殊测试套件（查看特别关注的内容）
-./mvn test:special
-
-# 使用模拟数据运行测试
-./mvn test:mock
-
-# 运行指定组的测试（查看指定分组的内容）
-./mvn test:group <组ID>
-
-# 清理项目
-./mvn clean
-
-# 安装依赖
-./mvn install
-
-# 显示帮助信息
-./mvn help
-```
+| 命令 | 说明 |
+|------|------|
+| `./mvn test` | 查看关注的微博内容 |
+| `./mvn test:special` | 查看特别关注的微博内容 |
+| `./mvn test:mock` | 使用模拟数据（无需登录） |
+| `./mvn test:group <组ID>` | 查看指定分组的微博内容 |
+| `./mvn clean` | 清理缓存数据 |
+| `./mvn install` | 安装依赖 |
+| `./mvn help` | 显示帮助信息 |
+| `./mvn license` | 显示许可协议 |
+| `./mvn agree` | 查看并同意许可协议 |
 
 ### 命令行选项
 
 可以在命令后添加以下选项：
 
 ```bash
-# 指定浏览器进行集成测试
+# 指定浏览器获取登录信息
 ./mvn test -b firefox
 
 # 设置自动刷新间隔（秒）
@@ -172,67 +100,61 @@ pip install -r hyperweibo/requirements.txt
 ./mvn test:special -b chrome -r 60 -p 1
 ```
 
-### 传统命令行方式
+### 直接使用Python命令
 
 也可以直接使用Python命令运行：
 
 ```bash
 # 基本用法
 python hyperweibo.py [选项]
-
-# 完整参数说明
-usage: hyperweibo.py [-h] [-b {chrome,firefox,edge,safari}] [-s] [-r REFRESH] [-m] [-c COOKIE] [-p PAGE] [-g GROUP]
-
-Java项目构建工具
-
-options:
-  -h, --help            显示帮助信息并退出
-  -b {chrome,firefox,edge,safari}, --browser {chrome,firefox,edge,safari}
-                        指定浏览器进行集成测试 (默认: chrome)
-  -s, --special         运行特殊测试套件
-  -r REFRESH, --refresh REFRESH
-                        自动刷新间隔（秒），0表示不自动刷新
-  -m, --mock            使用模拟数据进行测试
-  -c COOKIE, --cookie COOKIE
-                        提供测试会话cookie
-  -p PAGE, --page PAGE  起始页码，从1开始 (默认: 1)
-  -g GROUP, --group GROUP
-                        指定测试组ID
 ```
+
+完整参数说明：
+
+| 参数 | 说明 |
+|------|------|
+| `-h, --help` | 显示帮助信息并退出 |
+| `-b, --browser` | 指定浏览器获取登录信息 (默认: chrome) |
+| `-s, --special` | 查看特别关注的微博 |
+| `-r, --refresh` | 自动刷新间隔（秒），0表示不自动刷新 |
+| `-m, --mock` | 使用模拟数据（无需登录） |
+| `-c, --cookie` | 提供微博会话cookie |
+| `-p, --page` | 起始页码，从1开始 (默认: 1) |
+| `-g, --group` | 指定分组ID |
 
 ## 交互界面
 
 程序运行后，会显示类似以下的界面：
 
 ```
-Java项目构建工具 - 测试报告
+HyperWeibo 命令行工具
 
-标准测试套件数据（第1页）
+关注的微博（第1页）
 共 20 条记录
 
-✓ 测试用户1 2小时前:
-测试数据内容示例，包含各种测试信息和统计数据。#测试标签#
+✓ 用户名 2小时前:
+微博内容示例，包含各种信息和话题标签。#话题标签#
 
-[附件: 2个]
+[图片: 2张]
 
-引用: 5 | 评论: 12 | 赞同: 45
+转发: 5 | 评论: 12 | 点赞: 45
 
 ────────────────────────────────────────────────────────────────────────────────
 
-✓ 测试用户2 5小时前:
-另一条测试数据，展示了不同的格式和内容。
+✓ 另一用户 5小时前:
+另一条微博内容，展示了不同的格式和内容。
 
-引用@其他用户:
-这是被引用的内容，用于测试引用功能是否正常。
+转发@其他用户:
+这是被转发的内容，用于展示转发功能。
 
-引用: 2 | 评论: 8 | 赞同: 23
+转发: 2 | 评论: 8 | 点赞: 23
 
 ────────────────────────────────────────────────────────────────────────────────
 
 操作菜单
 1. 刷新当前页
-2. 切换到特殊测试套件
-3. 选择测试组
+2. 切换到特别关注
+3. 选择分组
 n. 下一页
 p. 上一页
 g. 跳转到指定页
@@ -245,51 +167,67 @@ q. 退出
 
 程序运行后，可以使用以下操作：
 
-- 输入 `1` 刷新当前页面
-- 输入 `2` 切换显示模式（标准测试套件/特殊测试套件）
-- 输入 `3` 显示测试组列表并选择测试组
-- 输入 `n` 查看下一页
-- 输入 `p` 查看上一页
-- 输入 `g` 跳转到指定页码
-- 输入 `q` 退出程序
+| 按键 | 功能 |
+|------|------|
+| `1` | 刷新当前页面 |
+| `2` | 切换显示模式（关注/特别关注） |
+| `3` | 显示分组列表并选择分组 |
+| `n` | 查看下一页 |
+| `p` | 查看上一页 |
+| `g` | 跳转到指定页码 |
+| `q` | 退出程序 |
 
-选择测试组时，会显示类似以下界面：
+选择分组时，会显示类似以下界面：
 
 ```
-测试组列表
+分组列表
 
 ┏━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┓
 ┃ 序号 ┃ 组ID                  ┃ 组名称      ┃
 ┡━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━┩
-│ 1   │ xxxxxxxxxxxxxxxxxx   │ 特殊测试组  │
-│ 2   │ xxxxxxxxxxxxxxxxxx   │ 性能测试组  │
-│ 3   │ xxxxxxxxxxxxxxxxxx   │ 集成测试组  │
-│ 4   │ xxxxxxxxxxxxxxxxxx   │ 单元测试组  │
+│ 1   │ xxxxxxxxxxxxxxxxxx   │ 特别关注    │
+│ 2   │ xxxxxxxxxxxxxxxxxx   │ 明星博主    │
+│ 3   │ xxxxxxxxxxxxxxxxxx   │ 科技资讯    │
+│ 4   │ xxxxxxxxxxxxxxxxxx   │ 朋友        │
 └────┴──────────────────────┴───────────┘
 
-请选择测试组序号（输入0返回）: 
+请选择分组序号（输入0返回）: 
 ```
 
-## 特殊指令含义对照表
+## 命令对照表
 
-为了便于理解，以下是特殊指令的实际含义对照表：
+为了便于理解，以下是命令行中使用的术语与实际功能的对照：
 
-| 显示名称 | 实际含义 |
-|---------|---------|
-| 标准测试套件 | 关注的微博 |
-| 特殊测试套件 | 特别关注的微博 |
-| 测试组 | 微博分组 |
-| 测试数据 | 微博内容 |
-| 引用 | 转发 |
-| 赞同 | 点赞 |
-| 附件 | 图片 |
-| 多媒体 | 视频 |
-| 认证 | 登录 |
-| 会话信息 | Cookie |
+| 命令中的术语 | 实际功能 |
+|------------|---------|
+| test | 查看关注的微博 |
+| test:special | 查看特别关注的微博 |
+| test:group | 查看指定分组的微博 |
+| test:mock | 使用模拟数据 |
+| clean | 清理缓存数据 |
+| install | 安装依赖 |
+| help | 显示帮助信息 |
+| license | 显示许可协议 |
+| agree | 查看并同意许可协议 |
 
-## 自动认证功能
+## 自动登录功能
 
-如果程序无法从浏览器获取会话信息，或者会话已过期，程序会自动打开浏览器让您进行认证。认证成功后，按回车键继续，程序会自动重新获取会话信息并继续运行。
+如果程序无法从浏览器获取会话信息，或者会话已过期，程序会自动打开浏览器让您进行登录。登录成功后，按回车键继续，程序会自动重新获取会话信息并继续运行。
+
+## 性能优化
+
+本工具实现了多种性能优化机制：
+
+1. **HTML解析结果缓存**：避免重复解析相同的内容
+2. **分组数据缓存**：减少重复请求分组信息
+3. **微博时间线缓存**：减少频繁刷新时的网络请求
+4. **用户信息缓存**：提高用户信息显示速度
+
+缓存过期时间设置：
+- 分组列表：300秒
+- 微博时间线：300秒
+- 用户信息：3600秒
+- HTML解析结果：300秒
 
 ## 常见问题
 
@@ -313,10 +251,10 @@ pip install pycookiecheat
 
 ## 注意事项
 
-- 本工具仅用于项目开发和测试
-- 请勿频繁刷新，以免影响服务器性能
-- 如遇到问题，请确保您的浏览器已正确完成认证
-- 在公共场合使用时，建议使用模拟数据模式（`./mvn test:mock`）
+⚠️ 本工具仅用于个人学习和研究  
+⚠️ 请勿频繁刷新，以免影响服务器性能  
+⚠️ 如遇到问题，请确保您的浏览器已正确登录微博  
+⚠️ 在公共场合使用时，建议使用模拟数据模式（`./mvn test:mock`）  
 
 ## 许可证
 
@@ -334,4 +272,4 @@ Copyright (c) 2025 Xue Zhouyang <xuezhouyang@gmail.com>
 4. 用户可以随时通过`./mvn agree -f`命令重新查看并确认协议
 5. 用户可以通过`./mvn license`命令查看完整的许可协议文本
 
-注意：未同意许可协议的用户将无法使用本软件的核心功能。 
+> **注意：** 未同意许可协议的用户将无法使用本软件的核心功能。 

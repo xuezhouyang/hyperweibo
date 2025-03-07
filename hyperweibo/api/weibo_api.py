@@ -90,6 +90,31 @@ class WeiboAPI:
         self.use_mock = use_mock
         self.browser = browser
         
+        # 初始化缓存
+        self._cache = {
+            'groups': None,  # 分组列表缓存
+            'group_timeline': {},  # 分组微博缓存，格式: {gid_page: data}
+            'home_timeline': {},  # 首页微博缓存，格式: {page: data}
+            'special_focus': {},  # 特别关注缓存，格式: {page: data}
+            'html_parse': {},  # HTML解析结果缓存，格式: {url_params: data}
+            'user_info': None,  # 用户信息缓存
+        }
+        self._cache_expiry = {
+            'groups': 0,  # 分组列表缓存过期时间
+            'group_timeline': {},  # 分组微博缓存过期时间
+            'home_timeline': {},  # 首页微博缓存过期时间
+            'special_focus': {},  # 特别关注缓存过期时间
+            'html_parse': {},  # HTML解析结果缓存过期时间
+            'user_info': 0,  # 用户信息缓存过期时间
+        }
+        # 缓存过期时间（秒）
+        self.cache_ttl = {
+            'groups': 300,  # 分组列表缓存1小时
+            'timeline': 300,  # 微博时间线缓存5分钟
+            'user_info': 3600,  # 用户信息缓存1小时
+            'html_parse': 300,  # HTML解析结果缓存5分钟
+        }
+        
         # 如果提供了cookie字符串，直接使用
         if cookie_str:
             self.set_cookie_from_string(cookie_str)
@@ -98,6 +123,104 @@ class WeiboAPI:
         elif not use_mock:
             self._load_cookies_from_browser(browser)
     
+    def _is_cache_valid(self, cache_type, key=None):
+        """检查缓存是否有效"""
+        current_time = time.time()
+        
+        if key is None:
+            # 检查没有key的缓存类型
+            return (self._cache[cache_type] is not None and 
+                    self._cache_expiry[cache_type] > current_time)
+        else:
+            # 检查有key的缓存类型
+            return (key in self._cache[cache_type] and 
+                    key in self._cache_expiry[cache_type] and 
+                    self._cache_expiry[cache_type][key] > current_time)
+    
+    def _set_cache(self, cache_type, data, key=None, ttl=None):
+        """设置缓存"""
+        if ttl is None:
+            if cache_type == 'groups' or cache_type == 'user_info':
+                ttl = self.cache_ttl['groups'] if cache_type == 'groups' else self.cache_ttl['user_info']
+            else:
+                ttl = self.cache_ttl['timeline']
+        
+        current_time = time.time()
+        
+        if key is None:
+            # 设置没有key的缓存类型
+            self._cache[cache_type] = data
+            self._cache_expiry[cache_type] = current_time + ttl
+        else:
+            # 设置有key的缓存类型
+            self._cache[cache_type][key] = data
+            self._cache_expiry[cache_type][key] = current_time + ttl
+    
+    def _get_cache(self, cache_type, key=None):
+        """获取缓存"""
+        if not self._is_cache_valid(cache_type, key):
+            return None
+        
+        if key is None:
+            # 获取没有key的缓存类型
+            return self._cache[cache_type]
+        else:
+            # 获取有key的缓存类型
+            return self._cache[cache_type].get(key)
+    
+    def _clear_cache(self, cache_type=None, key=None):
+        """清除缓存"""
+        if cache_type is None:
+            # 清除所有缓存
+            self._cache = {
+                'groups': None,
+                'group_timeline': {},
+                'home_timeline': {},
+                'special_focus': {},
+                'html_parse': {},
+                'user_info': None,
+            }
+            self._cache_expiry = {
+                'groups': 0,
+                'group_timeline': {},
+                'home_timeline': {},
+                'special_focus': {},
+                'html_parse': {},
+                'user_info': 0,
+            }
+        elif key is None:
+            # 清除指定类型的所有缓存
+            self._cache[cache_type] = {} if isinstance(self._cache[cache_type], dict) else None
+            self._cache_expiry[cache_type] = {} if isinstance(self._cache_expiry[cache_type], dict) else 0
+        else:
+            # 清除指定类型和key的缓存
+            if key in self._cache[cache_type]:
+                del self._cache[cache_type][key]
+            if key in self._cache_expiry[cache_type]:
+                del self._cache_expiry[cache_type][key]
+
+    def _parse_html_for_weibo(self, html_content):
+        """解析HTML内容提取微博数据，并缓存结果"""
+        soup = BeautifulSoup(html_content, 'lxml')
+        
+        # 尝试提取渲染数据
+        scripts = soup.find_all('script')
+        weibo_data = []
+        
+        for script in scripts:
+            if script.string and "$render_data" in script.string:
+                match = re.search(r'\$render_data\s*=\s*(\[.*?\])\[0\]', script.string, re.DOTALL)
+                if match:
+                    try:
+                        data = json.loads(match.group(1))[0]
+                        if 'status' in data:
+                            weibo_data = data['status']
+                            break
+                    except json.JSONDecodeError:
+                        continue
+        
+        return weibo_data
+
     def _open_browser_for_login(self):
         """打开浏览器让用户登录微博"""
         logger.info("正在打开浏览器，请登录微博...")
@@ -356,6 +479,13 @@ class WeiboAPI:
         if self.use_mock:
             return self._generate_mock_weibo(10)
         
+        # 检查缓存
+        cache_key = f"page_{page}"
+        cached_data = self._get_cache('home_timeline', cache_key)
+        if cached_data is not None:
+            logger.info(f"使用缓存的首页微博数据，页码: {page}")
+            return cached_data
+        
         # 添加页码参数
         url = f"{self.BASE_URL}/feed/friends"
         params = {"page": page}
@@ -368,30 +498,26 @@ class WeiboAPI:
             try:
                 data = response.json()
                 if 'data' in data and 'statuses' in data['data']:
-                    return data['data']['statuses']
+                    result = data['data']['statuses']
+                    # 缓存结果
+                    self._set_cache('home_timeline', result, cache_key)
+                    return result
             except json.JSONDecodeError:
                 pass
             
-            # 如果JSON解析失败，尝试解析HTML
-            soup = BeautifulSoup(response.text, 'lxml')
+            # 生成HTML解析缓存键
+            html_cache_key = f"{url}_{urlencode(params)}"
+            parsed_html = self._get_cache('html_parse', html_cache_key)
             
-            # 尝试提取渲染数据
-            scripts = soup.find_all('script')
-            weibo_data = []
+            if parsed_html is None:
+                # 如果JSON解析失败，尝试解析HTML
+                parsed_html = self._parse_html_for_weibo(response.text)
+                # 缓存HTML解析结果
+                self._set_cache('html_parse', parsed_html, html_cache_key, self.cache_ttl['html_parse'])
             
-            for script in scripts:
-                if script.string and "$render_data" in script.string:
-                    match = re.search(r'\$render_data\s*=\s*(\[.*?\])\[0\]', script.string, re.DOTALL)
-                    if match:
-                        try:
-                            data = json.loads(match.group(1))[0]
-                            if 'status' in data:
-                                weibo_data = data['status']
-                                break
-                        except json.JSONDecodeError:
-                            continue
-            
-            return weibo_data
+            # 缓存结果
+            self._set_cache('home_timeline', parsed_html, cache_key)
+            return parsed_html
         except Exception as e:
             logger.error(f"获取首页微博失败: {str(e)}")
             # 如果获取失败，返回模拟数据
@@ -411,46 +537,34 @@ class WeiboAPI:
         if self.use_mock:
             return self._generate_mock_weibo(5)
         
-        # 使用curl命令中的URL，添加页码参数
-        url = f"{self.BASE_URL}/feed/group"
-        params = {"gid": "xxxxxxxxxxxxxxxxxx", "page": page}
+        # 检查缓存
+        cache_key = f"page_{page}"
+        cached_data = self._get_cache('special_focus', cache_key)
+        if cached_data is not None:
+            logger.info(f"使用缓存的特别关注微博数据，页码: {page}")
+            return cached_data
         
-        try:
-            response = self.session.get(url, params=params)
-            response.raise_for_status()
-            
-            # 尝试解析JSON响应
-            try:
-                data = response.json()
-                if 'data' in data and 'statuses' in data['data']:
-                    return data['data']['statuses']
-            except json.JSONDecodeError:
-                pass
-            
-            # 如果JSON解析失败，尝试解析HTML
-            soup = BeautifulSoup(response.text, 'lxml')
-            
-            # 尝试提取渲染数据
-            scripts = soup.find_all('script')
-            weibo_data = []
-            
-            for script in scripts:
-                if script.string and "$render_data" in script.string:
-                    match = re.search(r'\$render_data\s*=\s*(\[.*?\])\[0\]', script.string, re.DOTALL)
-                    if match:
-                        try:
-                            data = json.loads(match.group(1))[0]
-                            if 'status' in data:
-                                weibo_data = data['status']
-                                break
-                        except json.JSONDecodeError:
-                            continue
-            
-            return weibo_data
-        except Exception as e:
-            logger.error(f"获取特别关注微博失败: {str(e)}")
-            # 如果获取失败，返回模拟数据
+        # 先获取用户的分组列表
+        groups = self.get_groups()
+        special_focus_group = None
+        
+        # 查找名为"特别关注"的分组
+        for group in groups:
+            if group.get("name") == "特别关注":
+                special_focus_group = group
+                break
+        
+        # 如果找到了特别关注分组，使用其ID；否则使用默认ID
+        if special_focus_group:
+            gid = special_focus_group.get("gid")
+            logger.info(f"找到特别关注分组，ID: {gid}")
+        else:
+            logger.warning("未找到特别关注分组，将使用默认分组")
+            # 如果没有找到特别关注分组，返回模拟数据
             return self._generate_mock_weibo(5)
+        
+        # 使用分组ID获取微博
+        return self.get_group_timeline(gid, page)
     
     def get_user_info(self) -> Optional[Dict[str, Any]]:
         """
@@ -462,6 +576,12 @@ class WeiboAPI:
         # 如果使用模拟数据，直接返回模拟数据
         if self.use_mock:
             return self._generate_mock_user()
+        
+        # 检查缓存
+        cached_data = self._get_cache('user_info')
+        if cached_data is not None:
+            logger.info("使用缓存的用户信息数据")
+            return cached_data
         
         # 尝试从首页获取用户信息
         url = f"{self.BASE_URL}/api/config"
@@ -491,7 +611,7 @@ class WeiboAPI:
                                         user_info[item['item_name']] = item['item_content']
                         
                         # 构建用户信息
-                        return {
+                        result = {
                             "screen_name": user_info.get('昵称', '未知用户'),
                             "description": user_info.get('简介', '暂无简介'),
                             "followers_count": self._extract_number(user_info.get('粉丝', '0')),
@@ -500,10 +620,13 @@ class WeiboAPI:
                             "verified": True if '认证' in user_info else False,
                             "verified_type": 0
                         }
+                        # 缓存结果
+                        self._set_cache('user_info', result)
+                        return result
             
             # 如果无法获取详细信息，尝试从配置中获取基本信息
             if 'data' in data and 'login' in data['data'] and data['data']['login']:
-                return {
+                result = {
                     "screen_name": data['data'].get('nick', '未知用户'),
                     "description": "暂无简介",
                     "followers_count": 0,
@@ -512,6 +635,9 @@ class WeiboAPI:
                     "verified": False,
                     "verified_type": -1
                 }
+                # 缓存结果
+                self._set_cache('user_info', result)
+                return result
             
             # 如果未登录，返回模拟数据
             logger.error("未登录微博")
@@ -551,6 +677,12 @@ class WeiboAPI:
                 {"gid": "xxxxxxxxxxxxxxxxxx", "name": "同学"}
             ]
         
+        # 检查缓存
+        cached_data = self._get_cache('groups')
+        if cached_data is not None:
+            logger.info("使用缓存的分组列表数据")
+            return cached_data
+        
         url = f"{self.BASE_URL}/api/config/list"
         
         try:
@@ -560,18 +692,22 @@ class WeiboAPI:
             # 解析JSON响应
             data = response.json()
             if data.get('ok') == 1 and 'data' in data and 'groups' in data['data']:
-                return data['data']['groups']
+                result = data['data']['groups']
+                # 缓存结果
+                self._set_cache('groups', result)
+                return result
             
             return []
         except Exception as e:
             logger.error(f"获取分组列表失败: {str(e)}")
             # 如果获取失败，返回模拟数据
-            return [
+            mock_data = [
                 {"gid": "xxxxxxxxxxxxxxxxxx", "name": "特别关注"},
                 {"gid": "xxxxxxxxxxxxxxxxxx", "name": "名人明星"},
                 {"gid": "xxxxxxxxxxxxxxxxxx", "name": "同事"},
                 {"gid": "xxxxxxxxxxxxxxxxxx", "name": "同学"}
             ]
+            return mock_data
     
     def get_group_timeline(self, gid: str, page=1) -> List[Dict[str, Any]]:
         """
@@ -588,6 +724,13 @@ class WeiboAPI:
         if self.use_mock:
             return self._generate_mock_weibo(5)
         
+        # 检查缓存
+        cache_key = f"{gid}_page_{page}"
+        cached_data = self._get_cache('group_timeline', cache_key)
+        if cached_data is not None:
+            logger.info(f"使用缓存的分组微博数据，分组ID: {gid}, 页码: {page}")
+            return cached_data
+        
         # 使用分组ID获取微博
         url = f"{self.BASE_URL}/feed/group"
         params = {"gid": gid, "page": page}
@@ -600,30 +743,36 @@ class WeiboAPI:
             try:
                 data = response.json()
                 if 'data' in data and 'statuses' in data['data']:
-                    return data['data']['statuses']
+                    result = data['data']['statuses']
+                    # 缓存结果
+                    self._set_cache('group_timeline', result, cache_key)
+                    # 如果是特别关注分组，也缓存到special_focus
+                    for group in self.get_groups():
+                        if group.get("gid") == gid and group.get("name") == "特别关注":
+                            self._set_cache('special_focus', result, f"page_{page}")
+                            break
+                    return result
             except json.JSONDecodeError:
                 pass
             
-            # 如果JSON解析失败，尝试解析HTML
-            soup = BeautifulSoup(response.text, 'lxml')
+            # 生成HTML解析缓存键
+            html_cache_key = f"{url}_{urlencode(params)}"
+            parsed_html = self._get_cache('html_parse', html_cache_key)
             
-            # 尝试提取渲染数据
-            scripts = soup.find_all('script')
-            weibo_data = []
+            if parsed_html is None:
+                # 如果JSON解析失败，尝试解析HTML
+                parsed_html = self._parse_html_for_weibo(response.text)
+                # 缓存HTML解析结果
+                self._set_cache('html_parse', parsed_html, html_cache_key, self.cache_ttl['html_parse'])
             
-            for script in scripts:
-                if script.string and "$render_data" in script.string:
-                    match = re.search(r'\$render_data\s*=\s*(\[.*?\])\[0\]', script.string, re.DOTALL)
-                    if match:
-                        try:
-                            data = json.loads(match.group(1))[0]
-                            if 'status' in data:
-                                weibo_data = data['status']
-                                break
-                        except json.JSONDecodeError:
-                            continue
-            
-            return weibo_data
+            # 缓存结果
+            self._set_cache('group_timeline', parsed_html, cache_key)
+            # 如果是特别关注分组，也缓存到special_focus
+            for group in self.get_groups():
+                if group.get("gid") == gid and group.get("name") == "特别关注":
+                    self._set_cache('special_focus', parsed_html, f"page_{page}")
+                    break
+            return parsed_html
         except Exception as e:
             logger.error(f"获取分组微博失败: {str(e)}")
             # 如果获取失败，返回模拟数据
